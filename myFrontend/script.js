@@ -3,13 +3,15 @@ import {abi, contractAddress} from "./constants.js"
 
 const connectBtn = document.getElementById("connectBtn");
 connectBtn.onclick = connectWallet;
-const writeBtn = document.getElementById("writeBtn");
-writeBtn.onclick = setName;
-const readBtn = document.getElementById("readBtn");
-readBtn.onclick = getName;
+const depositBtn = document.getElementById("depositBtn");
+depositBtn.onclick = deposit;
+const withdrawBtn = document.getElementById("withdrawBtn");
+withdrawBtn.onclick = withdraw;
+const balanceBtn = document.getElementById("balanceBtn");
+balanceBtn.onclick = getBalance;
 
  
-console.log("Welcome to my DApp!!!");
+console.log("Welcome to metacrafters ATM!!!");
   
   async function connectWallet() {
     if (typeof window.ethereum != undefined ) {
@@ -19,8 +21,9 @@ console.log("Welcome to my DApp!!!");
       const signer = provider.getSigner();
       const address = await signer.getAddress();
       console.log("Connected account:", address);
+      console.log("\n");
       document.getElementById("accountAddress").textContent =
-      "Account Address: " + address;
+      "Connected Account: " + address;
 
       await window.ethereum.request({method: "eth_requestAccounts"});
       connectBtn.innerHTML="Wallet Connected"
@@ -30,19 +33,20 @@ console.log("Welcome to my DApp!!!");
       console.log("No MetaMask!");}
   }
 
-  async function setName() {
-    const name = document.getElementById("write").value;
-    console.log("Writing a name to the blockchain...");
+  async function deposit() {
+    const amount = document.getElementById("deposit").value;
+    console.log("Depositing...");
     if (typeof window.ethereum != undefined ) {
       const provider = new ethers.providers.Web3Provider(window.ethereum);
       const signer = provider.getSigner();
       const contract = new ethers.Contract(contractAddress, abi, signer);
 
       try {
-        const transactionResponse = await contract.setName(name);
-        console.log("Setting ", name, "to the blockchain...");
+        const transactionResponse = await contract.deposit(amount);
         await listenForTransactionMine(transactionResponse, provider);
+        console.log("Deposited ", amount, "!!!");
         console.log("Done!!!");
+      console.log("\n");
       } catch (error) {
         console.log(error);
       }
@@ -50,18 +54,41 @@ console.log("Welcome to my DApp!!!");
 
   }
 
-  async function getName() {
-    console.log("Fetching a name from the blockchain!");
+  async function withdraw() {
+    const amount = document.getElementById("withdraw").value;
+    console.log("Withdrawing...");
+    if (typeof window.ethereum != undefined ) {
+      const provider = new ethers.providers.Web3Provider(window.ethereum);
+      const signer = provider.getSigner();
+      const contract = new ethers.Contract(contractAddress, abi, signer);
 
-    const provider = new ethers.providers.Web3Provider(window.ethereum);
-    const signer = provider.getSigner();
-    const contract = new ethers.Contract(contractAddress, abi, signer);
-    
-      const retrievedName = await contract.getName();
-      console.log(`Retrieved your name: ${retrievedName}`);
-      document.getElementById("readContentName").textContent =
-      "Your stored name is : " + retrievedName;
+      try {
+        const transactionResponse = await contract.withdraw(amount);
+        await listenForTransactionMine(transactionResponse, provider);
+        console.log("Withdrawn ", amount, "!!!");
+        console.log("Done!!!");
+      console.log("\n");
+      } catch (error) {
+        console.log(error);
+      }
   }
+  }
+
+  async function getBalance() {
+    console.log("Getting balance...");
+    if (typeof window.ethereum != undefined ) {
+      const provider = new ethers.providers.Web3Provider(window.ethereum);
+      const signer = provider.getSigner();
+      const contract = new ethers.Contract(contractAddress, abi, signer);
+
+      const balance = await contract.getBalance()
+      console.log(ethers.utils.formatEther(balance) / 0.000000000000000001);
+      console.log("\n");
+      document.getElementById('balances').innerHTML= "Your balance is " + ethers.utils.formatEther(balance) / 0.000000000000000001;
+    }
+  }
+
+
 
   function listenForTransactionMine(transactionResponse, provider) {
     console.log(`Mining ${transactionResponse.hash}...`);
